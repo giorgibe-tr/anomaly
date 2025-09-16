@@ -34,3 +34,9 @@
         </div>
     </span>
 </div>
+
+<app-anomaly-details 
+    [isVisible]="showAnomalyDetails" 
+    [anomalyData]="selectedAnomalyData"
+    (close)="onCloseAnomalyDetails()">
+</app-anomaly-details>

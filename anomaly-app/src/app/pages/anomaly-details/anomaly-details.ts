@@ -1,12 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-anomaly-details',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './anomaly-details.html',
   styleUrl: './anomaly-details.less'
 })
 export class AnomalyDetails {
+  @Input() isVisible = false;
+  @Input() anomalyData: any = null;
+  @Output() close = new EventEmitter<void>();
 
+  onClose() {
+    this.close.emit();
+  }
 }

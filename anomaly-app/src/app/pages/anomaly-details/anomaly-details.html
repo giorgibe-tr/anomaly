@@ -1,1 +1,70 @@
-<p>anomaly-details works!</p>
+<div class="popup-overlay" *ngIf="isVisible" (click)="onClose()">
+  <div class="popup-content" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Anomaly Details</h2>
+      <button class="close-button" (click)="onClose()">×</button>
+    </div>
+    
+    <div class="popup-body" *ngIf="anomalyData">
+      <div class="detail-section">
+        <h3>Basic Information</h3>
+        <div class="detail-row">
+          <span class="label">Date:</span>
+          <span class="value">{{ anomalyData.date_of_use }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Feature:</span>
+          <span class="value">{{ anomalyData.Feature }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">User Count:</span>
+          <span class="value">{{ anomalyData.distinct_CID_count | number }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Anomaly Analysis</h3>
+        <div class="detail-row">
+          <span class="label">Z-Score:</span>
+          <span class="value">{{ anomalyData.z_score }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Severity:</span>
+          <span class="value severity" [ngClass]="'severity-' + anomalyData.anomaly_severity.toLowerCase()">
+            {{ anomalyData.anomaly_severity }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Is Anomaly:</span>
+          <span class="value" [ngClass]="anomalyData.is_anomaly === 'True' ? 'anomaly-true' : 'anomaly-false'">
+            {{ anomalyData.is_anomaly }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Anomaly Score:</span>
+          <span class="value">{{ anomalyData.anomaly_score }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h3>Additional Details</h3>
+        <div class="detail-row">
+          <span class="label">Week Start:</span>
+          <span class="value">{{ anomalyData.week_start }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Month:</span>
+          <span class="value">{{ anomalyData.month }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Quarter:</span>
+          <span class="value">{{ anomalyData.quarter }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Is Weekend:</span>
+          <span class="value">{{ anomalyData.is_weekend }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

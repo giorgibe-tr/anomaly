@@ -8,10 +8,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { data } from './data';
 import { Chart, registerables } from 'chart.js';
+import { AnomalyDetails } from '../anomaly-details/anomaly-details';
 
 @Component({
   selector: 'app-main',
-  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule, AnomalyDetails],
   templateUrl: './main.html',
   styleUrl: './main.less'
 })
@@ -23,6 +24,8 @@ export class Main implements OnInit {
   selectedItemId: number | null = null;
   chart: Chart | null = null;
   selectedFeatureData: any[] = [];
+  showAnomalyDetails = false;
+  selectedAnomalyData: any = null;
 
   ngOnInit() {
     Chart.register(...registerables);
@@ -249,15 +252,14 @@ export class Main implements OnInit {
       distinctCIDCount: clickedData.distinct_CID_count
     });
 
-    // You can add your custom logic here
-    // For example:
-    // - Show a modal with detailed information
-    // - Navigate to a details page
-    // - Update other components
-    // - Show a tooltip with more data
-    
-    // Example: Show an alert with the data
-    alert(`Point ${dataIndex + 1} clicked!\nDate: ${clickedData.date_of_use}\nZ-Score: ${clickedData.z_score}\nSeverity: ${clickedData.anomaly_severity}`);
+    // Show the anomaly details popup
+    this.selectedAnomalyData = clickedData;
+    this.showAnomalyDetails = true;
+  }
+
+  onCloseAnomalyDetails() {
+    this.showAnomalyDetails = false;
+    this.selectedAnomalyData = null;
   }
 
   clearChart() {
