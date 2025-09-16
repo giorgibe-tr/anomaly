@@ -6,6 +6,62 @@
     </div>
     
     <div class="popup-body" *ngIf="anomalyData">
+      <div class="detail-section news-section" *ngIf="newsData || isLoadingNews">
+        <h3>📰 News Information</h3>
+        
+        <div class="loading-news" *ngIf="isLoadingNews">
+          <div class="loading-spinner"></div>
+          <span>Loading news data...</span>
+        </div>
+        
+        <div class="news-content" *ngIf="newsData && !isLoadingNews">
+          <div class="news-error" *ngIf="newsData.error">
+            <span class="error-message">❌ {{ newsData.error }}</span>
+          </div>
+          
+          <div class="news-summary" *ngIf="newsData && !newsData.error && newsData.output">
+          
+            <!-- Market Sentiment -->
+            <div class="sentiment-card">
+              <div class="sentiment-header">
+                <span class="sentiment-label">Market Sentiment</span>
+                <span class="sentiment-value" [ngClass]="'sentiment-' + newsData.output?.MarketSentiment?.toLowerCase()">
+                  {{ newsData.output?.MarketSentiment }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Impact Score -->
+            <div class="impact-card">
+              <div class="impact-header">
+                <span class="impact-label">Overall Impact Score</span>
+                <span class="impact-value">{{ newsData.output?.DebugData?.overallAverageImpact }}%</span>
+              </div>
+            </div>
+
+            <!-- Articles Count -->
+            <div class="articles-card">
+              <div class="articles-header">
+                <span class="articles-label">Total Articles Analyzed</span>
+                <span class="articles-value">{{ newsData.output?.DebugData?.totalArticles }}</span>
+              </div>
+            </div>
+
+            <!-- News Summary -->
+            <div class="summary-card">
+              <div class="summary-title">📰 News Summary</div>
+              <div class="summary-text">{{ newsData.output?.NewsSummary }}</div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="analysis-card" *ngIf="newsData.output?.DebugData?.newsSummary">
+              <div class="analysis-title">🔍 Detailed Market Analysis</div>
+              <div class="analysis-text">{{ newsData.output?.DebugData?.newsSummary }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="detail-section" *ngIf="analyzedPeriod">
         <h3>Analyzed Period</h3>
         <div class="detail-row">

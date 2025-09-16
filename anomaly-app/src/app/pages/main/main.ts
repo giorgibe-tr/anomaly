@@ -6,13 +6,27 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { data } from './data';
 import { Chart, registerables } from 'chart.js';
 import { AnomalyDetails } from '../anomaly-details/anomaly-details';
 
+interface NewsResponse {
+  output: {
+    MarketSentiment: string;
+    DebugData: {
+      newsSummary: string;
+      overallAverageImpact: string;
+      totalArticles: string;
+    };
+    NewsSummary: string;
+  };
+  error?: string;
+}
+
 @Component({
   selector: 'app-main',
-  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule, AnomalyDetails],
+  imports: [CommonModule, FormsModule, MatInputModule, MatFormFieldModule, MatIconModule, AnomalyDetails, HttpClientModule],
   templateUrl: './main.html',
   styleUrl: './main.less'
 })
@@ -27,6 +41,10 @@ export class Main implements OnInit {
   showAnomalyDetails = false;
   selectedAnomalyData: any = null;
   analyzedPeriodData: any = null;
+  newsData: NewsResponse | null = null;
+  isLoadingNews = false;
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     Chart.register(...registerables);
@@ -256,6 +274,9 @@ export class Main implements OnInit {
     // Calculate analyzed period data for the current feature
     this.calculateAnalyzedPeriod(clickedData.Feature);
 
+    // Fetch news data for the clicked date
+    this.fetchNewsData(clickedData.date_of_use);
+
     // Show the anomaly details popup
     this.selectedAnomalyData = clickedData;
     this.showAnomalyDetails = true;
@@ -265,6 +286,45 @@ export class Main implements OnInit {
     this.showAnomalyDetails = false;
     this.selectedAnomalyData = null;
     this.analyzedPeriodData = null;
+    this.newsData = null;
+  }
+
+  fetchNewsData(dateString: string) {
+    this.isLoadingNews = true;
+    this.newsData = null;
+
+    // Format date from YYYY-MM-DD to YYYYMMDD
+    //const formattedDate = dateString.replace(/-/g, '');
+    const formattedDate = "20250916";
+    
+    const apiUrl = `https://qa-2-n8n-ingress.dev.local/webhook/GetNews?date=${formattedDate}`;
+    
+    this.http.get<NewsResponse>(apiUrl).subscribe({
+      next: (response: NewsResponse) => {
+        console.log('Raw API response:', response);
+        console.log('Response type:', typeof response);
+        console.log('Response keys:', Object.keys(response));
+        this.newsData = response;
+        this.isLoadingNews = false;
+        console.log('News data set:', this.newsData);
+      },
+      error: (error) => {
+        console.error('Error fetching news data:', error);
+        this.isLoadingNews = false;
+        this.newsData = { 
+          output: {
+            MarketSentiment: 'Error',
+            DebugData: {
+              newsSummary: 'Failed to fetch news data',
+              overallAverageImpact: '0',
+              totalArticles: '0'
+            },
+            NewsSummary: 'Error loading news data'
+          },
+          error: 'Failed to fetch news data'
+        };
+      }
+    });
   }
 
   calculateAnalyzedPeriod(featureName: string) {
