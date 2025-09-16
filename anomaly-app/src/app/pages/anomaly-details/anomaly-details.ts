@@ -29,7 +29,13 @@ export class AnomalyDetails {
   @Input() isLoadingNews = false;
   @Output() close = new EventEmitter<void>();
 
+  isAnalysisExpanded = false;
+
   onClose() {
     this.close.emit();
+  }
+
+  toggleAnalysis() {
+    this.isAnalysisExpanded = !this.isAnalysisExpanded;
   }
 }

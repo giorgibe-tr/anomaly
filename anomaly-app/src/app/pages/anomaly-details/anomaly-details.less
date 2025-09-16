@@ -223,14 +223,19 @@
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      margin-bottom: 16px;
       transition: box-shadow 0.2s ease;
 
       &:hover {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .sentiment-header,
+      .impact-header,
+      .articles-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .sentiment-label,
@@ -277,21 +282,19 @@
       }
     }
 
-    .summary-card,
-    .analysis-card {
+    .summary-card {
       background: white;
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 16px;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       transition: box-shadow 0.2s ease;
 
       &:hover {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
-      .summary-title,
-      .analysis-title {
+      .summary-title {
         font-weight: 600;
         color: #2c3e50;
         font-size: 16px;
@@ -301,12 +304,80 @@
         gap: 8px;
       }
 
-      .summary-text,
-      .analysis-text {
+      .summary-text {
         color: #555;
         font-size: 14px;
         line-height: 1.6;
         text-align: justify;
+      }
+    }
+
+    .analysis-card {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      transition: box-shadow 0.2s ease;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .analysis-header {
+        padding: 16px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+
+        &:hover {
+          background-color: #f8f9fa;
+        }
+
+        .analysis-title {
+          font-weight: 600;
+          color: #2c3e50;
+          font-size: 16px;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .expand-arrow {
+          font-size: 18px;
+          color: #666;
+          transition: transform 0.3s ease;
+          transform: rotate(0deg);
+
+          &.expanded {
+            transform: rotate(90deg);
+          }
+        }
+      }
+
+      .analysis-content {
+        padding: 0 16px 16px 16px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+
+        &.collapsed {
+          max-height: 0;
+          padding: 0 16px;
+        }
+
+        &.expanded {
+          max-height: 1000px;
+        }
+
+        .analysis-text {
+          color: #555;
+          font-size: 14px;
+          line-height: 1.6;
+          text-align: justify;
+          margin: 0;
+        }
       }
     }
   }
