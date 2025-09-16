@@ -109,8 +109,7 @@ export class Main implements OnInit {
 
     const labels = this.selectedFeatureData.map(item => item.date_of_use);
     const percentages = this.selectedFeatureData.map(item => item.z_score);
-
-    console.log('Chart data:', { labels, percentages });
+    const severities = this.selectedFeatureData.map(item => item.anomaly_severity);
 
     if (this.selectedFeatureData.length === 0) {
       console.log('No data to display in chart');
@@ -118,6 +117,18 @@ export class Main implements OnInit {
       this.createEmptyChart(ctx);
       return;
     }
+
+    // Create point colors based on severity
+    const pointBackgroundColors = severities.map(severity => {
+      switch(severity) {
+        case 'Normal': return '#10b981'; // Emerald green
+        case 'Low': return '#f59e0b';    // Amber
+        case 'Medium': return '#ef4444'; // Red-500
+        default: return '#1976d2';       // Default blue
+      }
+    });
+
+    const pointBorderColors = pointBackgroundColors; // Same as background
 
     this.chart = new Chart(ctx, {
       type: 'line',
@@ -130,7 +141,11 @@ export class Main implements OnInit {
           backgroundColor: 'rgba(25, 118, 210, 0.1)',
           borderWidth: 2,
           fill: true,
-          tension: 0.4
+          tension: 0.4,
+          pointBackgroundColor: pointBackgroundColors,
+          pointBorderColor: pointBorderColors,
+          pointRadius: 6,
+          pointHoverRadius: 8
         }]
       },
       options: {
@@ -154,6 +169,44 @@ export class Main implements OnInit {
           title: {
             display: true,
             text: `Anomaly Trends - ${this.selectedFeatureData[0]?.Feature || 'Selected Feature'}`
+          },
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              generateLabels: (chart) => {
+                return [
+                  {
+                    text: 'Normal',
+                    fillStyle: '#10b981',
+                    strokeStyle: '#10b981',
+                    pointStyle: 'circle'
+                  },
+                  {
+                    text: 'Low',
+                    fillStyle: '#f59e0b',
+                    strokeStyle: '#f59e0b',
+                    pointStyle: 'circle'
+                  },
+                  {
+                    text: 'Medium',
+                    fillStyle: '#ef4444',
+                    strokeStyle: '#ef4444',
+                    pointStyle: 'circle'
+                  }
+                ];
+              }
+            }
+          }
+        },
+        onClick: (event, elements) => {
+          if (elements.length > 0) {
+            const element = elements[0];
+            const dataIndex = element.index;
+            const clickedData = this.selectedFeatureData[dataIndex];
+            this.onPointClick(clickedData, dataIndex);
           }
         }
       }
@@ -184,6 +237,27 @@ export class Main implements OnInit {
         }
       }
     });
+  }
+
+  onPointClick(clickedData: any, dataIndex: number) {
+    console.log('Point clicked:', {
+      index: dataIndex,
+      date: clickedData.date_of_use,
+      zScore: clickedData.z_score,
+      severity: clickedData.anomaly_severity,
+      isAnomaly: clickedData.is_anomaly,
+      distinctCIDCount: clickedData.distinct_CID_count
+    });
+
+    // You can add your custom logic here
+    // For example:
+    // - Show a modal with detailed information
+    // - Navigate to a details page
+    // - Update other components
+    // - Show a tooltip with more data
+    
+    // Example: Show an alert with the data
+    alert(`Point ${dataIndex + 1} clicked!\nDate: ${clickedData.date_of_use}\nZ-Score: ${clickedData.z_score}\nSeverity: ${clickedData.anomaly_severity}`);
   }
 
   clearChart() {
