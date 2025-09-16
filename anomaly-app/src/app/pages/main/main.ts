@@ -26,6 +26,7 @@ export class Main implements OnInit {
   selectedFeatureData: any[] = [];
   showAnomalyDetails = false;
   selectedAnomalyData: any = null;
+  analyzedPeriodData: any = null;
 
   ngOnInit() {
     Chart.register(...registerables);
@@ -252,6 +253,9 @@ export class Main implements OnInit {
       distinctCIDCount: clickedData.distinct_CID_count
     });
 
+    // Calculate analyzed period data for the current feature
+    this.calculateAnalyzedPeriod(clickedData.Feature);
+
     // Show the anomaly details popup
     this.selectedAnomalyData = clickedData;
     this.showAnomalyDetails = true;
@@ -260,6 +264,57 @@ export class Main implements OnInit {
   onCloseAnomalyDetails() {
     this.showAnomalyDetails = false;
     this.selectedAnomalyData = null;
+    this.analyzedPeriodData = null;
+  }
+
+  calculateAnalyzedPeriod(featureName: string) {
+    // Get all data for this feature
+    const featureData = data.filter(item => item.Feature === featureName);
+    
+    if (featureData.length === 0) {
+      this.analyzedPeriodData = null;
+      return;
+    }
+
+    // Sort by date
+    const sortedData = featureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
+    
+    // Get date range
+    const startDate = sortedData[0].date_of_use;
+    const endDate = sortedData[sortedData.length - 1].date_of_use;
+    
+    // Calculate duration
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Count anomalies
+    const anomalyPoints = featureData.filter(item => item.is_anomaly === "True").length;
+    
+    // Format duration
+    let duration = '';
+    if (diffDays === 0) {
+      duration = 'Same day';
+    } else if (diffDays === 1) {
+      duration = '1 day';
+    } else if (diffDays < 30) {
+      duration = `${diffDays} days`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      duration = `${months} month${months > 1 ? 's' : ''}`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      duration = `${years} year${years > 1 ? 's' : ''}`;
+    }
+
+    this.analyzedPeriodData = {
+      startDate: startDate,
+      endDate: endDate,
+      duration: duration,
+      totalPoints: featureData.length,
+      anomalyPoints: anomalyPoints
+    };
   }
 
   clearChart() {

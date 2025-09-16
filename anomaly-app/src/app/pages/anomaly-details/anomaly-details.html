@@ -6,6 +6,30 @@
     </div>
     
     <div class="popup-body" *ngIf="anomalyData">
+      <div class="detail-section" *ngIf="analyzedPeriod">
+        <h3>Analyzed Period</h3>
+        <div class="detail-row">
+          <span class="label">From:</span>
+          <span class="value">{{ analyzedPeriod.startDate }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">To:</span>
+          <span class="value">{{ analyzedPeriod.endDate }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Duration:</span>
+          <span class="value">{{ analyzedPeriod.duration }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Total Data Points:</span>
+          <span class="value">{{ analyzedPeriod.totalPoints | number }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Anomaly Points:</span>
+          <span class="value anomaly-count">{{ analyzedPeriod.anomalyPoints | number }}</span>
+        </div>
+      </div>
+
       <div class="detail-section">
         <h3>Basic Information</h3>
         <div class="detail-row">

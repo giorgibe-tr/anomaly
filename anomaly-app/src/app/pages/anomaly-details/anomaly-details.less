@@ -17,8 +17,9 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   max-width: 600px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: 81vh;
+  display: flex;
+  flex-direction: column;
   animation: popupSlideIn 0.3s ease-out;
 }
 
@@ -41,6 +42,7 @@
   border-bottom: 1px solid #e0e0e0;
   background: #f8f9fa;
   border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
 
   h2 {
     margin: 0;
@@ -73,6 +75,9 @@
 
 .popup-body {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .detail-section {
@@ -148,6 +153,15 @@
     &.anomaly-false {
       color: #059669;
       font-weight: 600;
+    }
+
+    &.anomaly-count {
+      color: #dc2626;
+      font-weight: 600;
+      background-color: #fee2e2;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
     }
   }
 }

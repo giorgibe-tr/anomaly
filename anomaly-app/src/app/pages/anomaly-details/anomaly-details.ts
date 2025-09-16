@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 export class AnomalyDetails {
   @Input() isVisible = false;
   @Input() anomalyData: any = null;
+  @Input() analyzedPeriod: any = null;
   @Output() close = new EventEmitter<void>();
 
   onClose() {
