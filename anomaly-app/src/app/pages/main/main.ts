@@ -35,6 +35,7 @@ export class Main implements OnInit {
   
   value = '';
   data = this.getUniqueFeatures();
+  filteredData = this.data;
   selectedItemId: number | null = null;
   chart: Chart | null = null;
   selectedFeatureData: any[] = [];
@@ -287,6 +288,45 @@ export class Main implements OnInit {
     this.selectedAnomalyData = null;
     this.analyzedPeriodData = null;
     this.newsData = null;
+  }
+
+  onSearchChange() {
+    if (!this.value || this.value.trim() === '') {
+      this.filteredData = this.data;
+    } else {
+      const searchTerm = this.value.toLowerCase().trim();
+      this.filteredData = this.data.filter(item => 
+        item.name.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // If current selection is not in filtered results, select first item from filtered results
+    if (this.selectedItemId && !this.filteredData.find(item => item.id === this.selectedItemId)) {
+      if (this.filteredData.length > 0) {
+        // Select first item from filtered results
+        this.selectedItemId = this.filteredData[0].id;
+        this.loadChartData(this.filteredData[0].name);
+      } else {
+        // No results, clear selection
+        this.selectedItemId = null;
+        this.clearChart();
+      }
+    } else if (!this.selectedItemId && this.filteredData.length > 0) {
+      // If no current selection and we have filtered results, select first item
+      this.selectedItemId = this.filteredData[0].id;
+      this.loadChartData(this.filteredData[0].name);
+    }
+  }
+
+  clearSearch() {
+    this.value = '';
+    this.filteredData = this.data;
+    
+    // Select first item from all data when clearing search
+    if (this.filteredData.length > 0) {
+      this.selectedItemId = this.filteredData[0].id;
+      this.loadChartData(this.filteredData[0].name);
+    }
   }
 
   fetchNewsData(dateString: string) {

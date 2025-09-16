@@ -1,21 +1,21 @@
 
 <div class="example-container">
     <span class="list-content">
-        <div class="search">
-            <mat-form-field class="example-form-field">
-                <mat-label>Search for an Anomaly</mat-label>
-                <input matInput type="text" [(ngModel)]="value">
-                @if (value) {
-                  <span class="clear-button" matSuffix mat-icon-button aria-label="Clear" (click)="value=''">
-                   clear
-                  </span>
-                }
-            </mat-form-field>
-            <span class="material-symbols-outlined add-button">add_circle</span>
-        </div>
+                <div class="search">
+                    <mat-form-field class="example-form-field">
+                        <mat-label>Search for an Anomaly</mat-label>
+                        <input matInput type="text" [(ngModel)]="value" (input)="onSearchChange()">
+                        @if (value) {
+                          <span class="clear-button" matSuffix mat-icon-button aria-label="Clear" (click)="clearSearch()">
+                           clear
+                          </span>
+                        }
+                    </mat-form-field>
+                    <span class="material-symbols-outlined add-button">add_circle</span>
+                </div>
          <div class="list-container">
              <div class="list-item" 
-                  *ngFor="let item of data" 
+                  *ngFor="let item of filteredData" 
                   [class.active]="isItemSelected(item.id)"
                   (click)="selectItem(item.id)">
                  <div class="list-item-content">
@@ -24,6 +24,13 @@
                          <span class="first-number">{{ item.firstNumber | number }}</span>
                          <span class="second-number">{{ item.secondNumber }}%</span>
                      </div>
+                 </div>
+             </div>
+             
+             <div class="no-results" *ngIf="filteredData.length === 0 && value">
+                 <div class="no-results-content">
+                     <span class="no-results-icon">🔍</span>
+                     <span class="no-results-text">No features found matching "{{ value }}"</span>
                  </div>
              </div>
          </div>
