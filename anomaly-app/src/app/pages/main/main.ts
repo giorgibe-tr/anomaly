@@ -358,8 +358,8 @@ export class Main implements OnInit {
     this.newsData = null;
 
     // Format date from YYYY-MM-DD to YYYYMMDD
-    //const formattedDate = dateString.replace(/-/g, '');
-    const formattedDate = "20250916";
+    const formattedDate = dateString.replace(/-/g, '');
+    //const formattedDate = "20250916";
     
     const apiUrl = `https://qa-2-n8n-ingress.dev.local/webhook/GetNews?date=${formattedDate}`;
     
