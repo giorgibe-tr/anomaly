@@ -1,14 +1,30 @@
 
 @import '../../app.less';
 
+.dashboard-header {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    
+    h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+}
+
 .example-form-field {
   width: 100%;
 }
 
 .example-container {
     width: auto;
-    height: 95%;
-    margin-top: 5%;
+    height: calc(100% - 120px);
     margin: 10px;
     border: 1px solid #c8c8c8;
     border-radius: 10px;
