@@ -68,7 +68,7 @@ export class Main implements OnInit {
           id: featureMap.size + 1,
           name: feature,
           firstNumber: item.distinct_CID_count,
-          secondNumber: Math.round(item.z_score * 100) / 100, // Round to 2 decimal places
+          secondNumber: item.distinct_CID_count, // Use distinct_CID_count instead of z_score
           anomalyScore: item.anomaly_score,
           isAnomaly: item.is_anomaly === "True",
           anomalySeverity: item.anomaly_severity
@@ -123,7 +123,7 @@ export class Main implements OnInit {
     }
 
     const labels = this.selectedFeatureData.map(item => item.date_of_use);
-    const percentages = this.selectedFeatureData.map(item => item.z_score);
+    const percentages = this.selectedFeatureData.map(item => item.distinct_CID_count);
     const severities = this.selectedFeatureData.map(item => item.anomaly_severity);
 
     if (this.selectedFeatureData.length === 0) {
@@ -178,7 +178,7 @@ export class Main implements OnInit {
       data: {
         labels: labels,
         datasets: [{
-          label: 'Anomaly Score (%)',
+          label: 'Distinct CID Count',
           data: percentages,
           borderColor: '#1976d2',
           backgroundColor: 'rgba(25, 118, 210, 0.1)',
@@ -204,7 +204,7 @@ export class Main implements OnInit {
           y: {
             title: {
               display: true,
-              text: 'Z-Score (%)'
+              text: 'Distinct CID Count'
             }
           }
         },
@@ -290,10 +290,10 @@ export class Main implements OnInit {
     console.log('Point clicked:', {
       index: dataIndex,
       date: clickedData.date_of_use,
-      zScore: clickedData.z_score,
+      distinctCIDCount: clickedData.distinct_CID_count,
       severity: clickedData.anomaly_severity,
       isAnomaly: clickedData.is_anomaly,
-      distinctCIDCount: clickedData.distinct_CID_count
+      zScore: clickedData.z_score
     });
 
     // Calculate analyzed period data for the current feature
