@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDrawerContainer, MatDrawer, MatDrawerContent } from '@angular/material/sidenav';
@@ -30,7 +30,7 @@ interface NewsResponse {
   templateUrl: './main.html',
   styleUrl: './main.less'
 })
-export class Main implements OnInit {
+export class Main implements OnInit, AfterViewInit {
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   
   value = '';
@@ -44,6 +44,7 @@ export class Main implements OnInit {
   analyzedPeriodData: any = null;
   newsData: NewsResponse | null = null;
   isLoadingNews = false;
+  miniCharts: Chart[] = [];
 
   constructor(private http: HttpClient) {}
 
@@ -55,6 +56,15 @@ export class Main implements OnInit {
       this.selectedItemId = this.data[0].id;
       this.loadChartData(this.data[0].name);
     }
+    
+    // Create mini charts after a short delay
+    setTimeout(() => {
+      this.createMiniCharts();
+    }, 200);
+  }
+
+  ngAfterViewInit() {
+    // Mini charts are created in ngOnInit
   }
 
   getUniqueFeatures() {
@@ -76,7 +86,11 @@ export class Main implements OnInit {
       }
     });
     
-    return Array.from(featureMap.values());
+    const uniqueFeatures = Array.from(featureMap.values());
+    console.log('Unique features found:', uniqueFeatures.length);
+    console.log('Feature names:', uniqueFeatures.map(f => f.name));
+    
+    return uniqueFeatures;
   }
 
   selectItem(itemId: number) {
@@ -324,6 +338,11 @@ export class Main implements OnInit {
       );
     }
     
+    // Recreate mini charts for filtered data
+    setTimeout(() => {
+      this.createMiniCharts();
+    }, 100);
+    
     // If current selection is not in filtered results, select first item from filtered results
     if (this.selectedItemId && !this.filteredData.find(item => item.id === this.selectedItemId)) {
       if (this.filteredData.length > 0) {
@@ -345,6 +364,11 @@ export class Main implements OnInit {
   clearSearch() {
     this.value = '';
     this.filteredData = this.data;
+    
+    // Recreate mini charts
+    setTimeout(() => {
+      this.createMiniCharts();
+    }, 100);
     
     // Select first item from all data when clearing search
     if (this.filteredData.length > 0) {
@@ -447,5 +471,53 @@ export class Main implements OnInit {
       this.chart = null;
     }
     this.selectedFeatureData = [];
+  }
+
+
+  createMiniCharts() {
+    this.filteredData.forEach(item => {
+      const canvasId = `miniChart${item.id}`;
+      const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+      
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Get data for this feature
+          const featureData = data.filter(d => d.Feature === item.name);
+          const sortedData = featureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
+          
+          if (sortedData.length > 0) {
+            const values = sortedData.map(d => d.distinct_CID_count);
+            
+            // Create simple mini chart
+            new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: values.map((_, i) => i.toString()),
+                datasets: [{
+                  data: values,
+                  borderColor: '#1976d2',
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  fill: false,
+                  pointRadius: 0
+                }]
+              },
+              options: {
+                responsive: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: { enabled: false }
+                },
+                scales: {
+                  x: { display: false },
+                  y: { display: false }
+                }
+              }
+            });
+          }
+        }
+      }
+    });
   }
 }
