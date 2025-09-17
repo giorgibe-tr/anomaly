@@ -68,7 +68,7 @@ export class Main implements OnInit {
           id: featureMap.size + 1,
           name: feature,
           firstNumber: item.distinct_CID_count,
-          secondNumber: item.distinct_CID_count, // Use distinct_CID_count instead of z_score
+          secondNumber: Math.round(item.z_score * 100) / 100, // Z-score for percentage display
           anomalyScore: item.anomaly_score,
           isAnomaly: item.is_anomaly === "True",
           anomalySeverity: item.anomaly_severity
