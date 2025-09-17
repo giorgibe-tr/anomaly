@@ -492,6 +492,8 @@ export class Main implements OnInit, AfterViewInit {
             const finalData = everyThirdData.slice(0, 10); // Limit to 10 points max
             const values = finalData.map(d => d.distinct_CID_count);
             
+            console.log(`Mini chart for ${item.name}: ${values.length} points, values:`, values.slice(0, 3));
+            
             // Create simple mini chart
             new Chart(ctx, {
               type: 'line',
@@ -509,6 +511,7 @@ export class Main implements OnInit, AfterViewInit {
               },
               options: {
                 responsive: false,
+                maintainAspectRatio: false,
                 plugins: {
                   legend: { display: false },
                   tooltip: { enabled: false }
@@ -521,6 +524,9 @@ export class Main implements OnInit, AfterViewInit {
                   line: {
                     borderWidth: 1.5
                   }
+                },
+                layout: {
+                  padding: 2
                 }
               }
             });
