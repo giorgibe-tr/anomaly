@@ -487,7 +487,10 @@ export class Main implements OnInit, AfterViewInit {
           const sortedData = featureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
           
           if (sortedData.length > 0) {
-            const values = sortedData.map(d => d.distinct_CID_count);
+            // Reduce data points for mini chart - take every 3rd point, max 10 points
+            const everyThirdData = sortedData.filter((_, index) => index % 3 === 0);
+            const finalData = everyThirdData.slice(0, 10); // Limit to 10 points max
+            const values = finalData.map(d => d.distinct_CID_count);
             
             // Create simple mini chart
             new Chart(ctx, {
@@ -500,7 +503,8 @@ export class Main implements OnInit, AfterViewInit {
                   backgroundColor: 'transparent',
                   borderWidth: 1,
                   fill: false,
-                  pointRadius: 0
+                  pointRadius: 0,
+                  tension: 0.4
                 }]
               },
               options: {
@@ -512,6 +516,11 @@ export class Main implements OnInit, AfterViewInit {
                 scales: {
                   x: { display: false },
                   y: { display: false }
+                },
+                elements: {
+                  line: {
+                    borderWidth: 1.5
+                  }
                 }
               }
             });
