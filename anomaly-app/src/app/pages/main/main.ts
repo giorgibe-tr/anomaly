@@ -60,7 +60,7 @@ export class Main implements OnInit, AfterViewInit {
     // Create mini charts after a short delay
     setTimeout(() => {
       this.createMiniCharts();
-    }, 200);
+    }, 300);
   }
 
   ngAfterViewInit() {
@@ -341,7 +341,7 @@ export class Main implements OnInit, AfterViewInit {
     // Recreate mini charts for filtered data
     setTimeout(() => {
       this.createMiniCharts();
-    }, 100);
+    }, 200);
     
     // If current selection is not in filtered results, select first item from filtered results
     if (this.selectedItemId && !this.filteredData.find(item => item.id === this.selectedItemId)) {
@@ -368,7 +368,7 @@ export class Main implements OnInit, AfterViewInit {
     // Recreate mini charts
     setTimeout(() => {
       this.createMiniCharts();
-    }, 100);
+    }, 200);
     
     // Select first item from all data when clearing search
     if (this.filteredData.length > 0) {
@@ -475,64 +475,82 @@ export class Main implements OnInit, AfterViewInit {
 
 
   createMiniCharts() {
-    this.filteredData.forEach(item => {
-      const canvasId = `miniChart${item.id}`;
-      const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-      
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          // Get data for this feature
-          const featureData = data.filter(d => d.Feature === item.name);
-          const sortedData = featureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
-          
-          if (sortedData.length > 0) {
-            // Reduce data points for mini chart - take every 3rd point, max 10 points
-            const everyThirdData = sortedData.filter((_, index) => index % 3 === 0);
-            const finalData = everyThirdData.slice(0, 10); // Limit to 10 points max
-            const values = finalData.map(d => d.distinct_CID_count);
+    console.log('Creating mini charts for', this.filteredData.length, 'items');
+    
+    // Wait for DOM to be ready
+    setTimeout(() => {
+      this.filteredData.forEach((item, index) => {
+        const canvasId = `miniChart${item.id}`;
+        const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
+        
+        console.log(`Looking for canvas ${canvasId}:`, canvas ? 'Found' : 'Not found');
+        
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Get data for this feature
+            const featureData = data.filter(d => d.Feature === item.name);
+            const sortedData = featureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
             
-            console.log(`Mini chart for ${item.name}: ${values.length} points, values:`, values.slice(0, 3));
-            
-            // Create simple mini chart
-            new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: values.map((_, i) => i.toString()),
-                datasets: [{
-                  data: values,
-                  borderColor: '#1976d2',
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  fill: false,
-                  pointRadius: 0,
-                  tension: 0.4
-                }]
-              },
-              options: {
-                responsive: false,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: { enabled: false }
-                },
-                scales: {
-                  x: { display: false },
-                  y: { display: false }
-                },
-                elements: {
-                  line: {
-                    borderWidth: 1.5
+            if (sortedData.length > 0) {
+              // Reduce data points for mini chart - take every 3rd point, max 10 points
+              const everyThirdData = sortedData.filter((_, index) => index % 3 === 0);
+              const finalData = everyThirdData.slice(0, 10); // Limit to 10 points max
+              const values = finalData.map(d => d.distinct_CID_count);
+              
+              console.log(`Creating chart ${index + 1}/${this.filteredData.length} for ${item.name}: ${values.length} points`);
+              
+              try {
+                // Create simple mini chart
+                new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                    labels: values.map((_, i) => i.toString()),
+                    datasets: [{
+                      data: values,
+                      borderColor: '#1976d2',
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      fill: false,
+                      pointRadius: 0,
+                      tension: 0.4
+                    }]
+                  },
+                  options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: { enabled: false }
+                    },
+                    scales: {
+                      x: { display: false },
+                      y: { display: false }
+                    },
+                    elements: {
+                      line: {
+                        borderWidth: 1.5
+                      }
+                    },
+                    layout: {
+                      padding: 2
+                    }
                   }
-                },
-                layout: {
-                  padding: 2
-                }
+                });
+                console.log(`✅ Chart created for ${item.name}`);
+              } catch (error) {
+                console.error(`❌ Error creating chart for ${item.name}:`, error);
               }
-            });
+            } else {
+              console.log(`No data found for ${item.name}`);
+            }
+          } else {
+            console.error(`Could not get context for canvas ${canvasId}`);
           }
+        } else {
+          console.error(`Canvas ${canvasId} not found`);
         }
-      }
-    });
+      });
+    }, 100);
   }
 }
