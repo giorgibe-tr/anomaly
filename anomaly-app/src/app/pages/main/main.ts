@@ -97,18 +97,10 @@ export class Main implements OnInit {
   }
 
   loadChartData(featureName: string) {
-    // First try to filter data by feature and is_anomaly = true
-    this.selectedFeatureData = data.filter(item => 
-      item.Feature === featureName && item.is_anomaly === "True"
-    );
+    // Always show all data for the feature
+    this.selectedFeatureData = data.filter(item => item.Feature === featureName);
 
-    console.log('Anomaly data for feature:', featureName, this.selectedFeatureData.length, 'records');
-
-    // If no anomalies found, show all data for the feature
-    if (this.selectedFeatureData.length === 0) {
-      this.selectedFeatureData = data.filter(item => item.Feature === featureName);
-      console.log('No anomalies found, showing all data for feature:', featureName, this.selectedFeatureData.length, 'records');
-    }
+    console.log('All data for feature:', featureName, this.selectedFeatureData.length, 'records');
 
     // Sort by date
     this.selectedFeatureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
@@ -141,17 +133,45 @@ export class Main implements OnInit {
       return;
     }
 
-    // Create point colors based on severity
-    const pointBackgroundColors = severities.map(severity => {
-      switch(severity) {
-        case 'Normal': return '#10b981'; // Emerald green
-        case 'Low': return '#f59e0b';    // Amber
-        case 'Medium': return '#ef4444'; // Red-500
-        default: return '#1976d2';       // Default blue
+    // Create point colors and visibility based on anomaly status
+    const pointBackgroundColors = this.selectedFeatureData.map(item => {
+      if (item.is_anomaly === "True") {
+        // Show points only for anomalies with color based on severity
+        switch(item.anomaly_severity) {
+          case 'Normal': return '#10b981'; // Emerald green
+          case 'Low': return '#f59e0b';    // Amber
+          case 'Medium': return '#ef4444'; // Red-500
+          default: return '#1976d2';       // Default blue
+        }
+      } else {
+        // Hide points for non-anomalies (transparent)
+        return 'transparent';
       }
     });
 
-    const pointBorderColors = pointBackgroundColors; // Same as background
+    const pointBorderColors = this.selectedFeatureData.map(item => {
+      if (item.is_anomaly === "True") {
+        // Show border only for anomalies
+        switch(item.anomaly_severity) {
+          case 'Normal': return '#10b981'; // Emerald green
+          case 'Low': return '#f59e0b';    // Amber
+          case 'Medium': return '#ef4444'; // Red-500
+          default: return '#1976d2';       // Default blue
+        }
+      } else {
+        // Hide border for non-anomalies
+        return 'transparent';
+      }
+    });
+
+    // Create point radius array - show points only for anomalies
+    const pointRadius = this.selectedFeatureData.map(item => 
+      item.is_anomaly === "True" ? 6 : 0
+    );
+
+    const pointHoverRadius = this.selectedFeatureData.map(item => 
+      item.is_anomaly === "True" ? 8 : 0
+    );
 
     this.chart = new Chart(ctx, {
       type: 'line',
@@ -167,8 +187,8 @@ export class Main implements OnInit {
           tension: 0.4,
           pointBackgroundColor: pointBackgroundColors,
           pointBorderColor: pointBorderColors,
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: pointRadius,
+          pointHoverRadius: pointHoverRadius
         }]
       },
       options: {
@@ -229,7 +249,11 @@ export class Main implements OnInit {
             const element = elements[0];
             const dataIndex = element.index;
             const clickedData = this.selectedFeatureData[dataIndex];
-            this.onPointClick(clickedData, dataIndex);
+            
+            // Only allow clicking on anomaly points
+            if (clickedData.is_anomaly === "True") {
+              this.onPointClick(clickedData, dataIndex);
+            }
           }
         }
       }
