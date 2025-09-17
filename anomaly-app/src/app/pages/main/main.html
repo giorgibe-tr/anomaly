@@ -43,6 +43,22 @@
          </div>
     </span>
     <span class="chart-content">
+        <div class="chart-filters">
+            <div class="frequency-filter">
+                <label for="frequency-select">Frequency:</label>
+                <select id="frequency-select" [(ngModel)]="selectedFrequency" (change)="onFrequencyChange()">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+            <div class="time-period-buttons">
+                <button class="period-btn" [class.active]="selectedPeriod === '30D'" (click)="selectPeriod('30D')">30D</button>
+                <button class="period-btn" [class.active]="selectedPeriod === '3M'" (click)="selectPeriod('3M')">3M</button>
+                <button class="period-btn" [class.active]="selectedPeriod === '6M'" (click)="selectPeriod('6M')">6M</button>
+                <button class="period-btn" [class.active]="selectedPeriod === 'max'" (click)="selectPeriod('max')">max</button>
+            </div>
+        </div>
         <div class="chart-container">
             <canvas #chartCanvas></canvas>
         </div>

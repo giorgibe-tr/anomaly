@@ -45,6 +45,8 @@ export class Main implements OnInit, AfterViewInit {
   newsData: NewsResponse | null = null;
   isLoadingNews = false;
   miniCharts: Chart[] = [];
+  selectedFrequency = 'daily';
+  selectedPeriod = 'max';
 
   constructor(private http: HttpClient) {}
 
@@ -87,8 +89,6 @@ export class Main implements OnInit, AfterViewInit {
     });
     
     const uniqueFeatures = Array.from(featureMap.values());
-    console.log('Unique features found:', uniqueFeatures.length);
-    console.log('Feature names:', uniqueFeatures.map(f => f.name));
     
     return uniqueFeatures;
   }
@@ -111,10 +111,16 @@ export class Main implements OnInit, AfterViewInit {
   }
 
   loadChartData(featureName: string) {
-    // Always show all data for the feature
-    this.selectedFeatureData = data.filter(item => item.Feature === featureName);
+    // Get all data for the feature
+    let featureData = data.filter(item => item.Feature === featureName);
+    
+    // Apply time period filter
+    featureData = this.applyTimePeriodFilter(featureData);
+    
+    // Apply frequency filter
+    featureData = this.applyFrequencyFilter(featureData);
 
-    console.log('All data for feature:', featureName, this.selectedFeatureData.length, 'records');
+    this.selectedFeatureData = featureData;
 
     // Sort by date
     this.selectedFeatureData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
@@ -141,7 +147,6 @@ export class Main implements OnInit, AfterViewInit {
     const severities = this.selectedFeatureData.map(item => item.anomaly_severity);
 
     if (this.selectedFeatureData.length === 0) {
-      console.log('No data to display in chart');
       // Show a message or create a placeholder chart
       this.createEmptyChart(ctx);
       return;
@@ -301,15 +306,6 @@ export class Main implements OnInit, AfterViewInit {
   }
 
   onPointClick(clickedData: any, dataIndex: number) {
-    console.log('Point clicked:', {
-      index: dataIndex,
-      date: clickedData.date_of_use,
-      distinctCIDCount: clickedData.distinct_CID_count,
-      severity: clickedData.anomaly_severity,
-      isAnomaly: clickedData.is_anomaly,
-      zScore: clickedData.z_score
-    });
-
     // Calculate analyzed period data for the current feature
     this.calculateAnalyzedPeriod(clickedData.Feature);
 
@@ -389,12 +385,8 @@ export class Main implements OnInit, AfterViewInit {
     
     this.http.get<NewsResponse>(apiUrl).subscribe({
       next: (response: NewsResponse) => {
-        console.log('Raw API response:', response);
-        console.log('Response type:', typeof response);
-        console.log('Response keys:', Object.keys(response));
         this.newsData = response;
         this.isLoadingNews = false;
-        console.log('News data set:', this.newsData);
       },
       error: (error) => {
         console.error('Error fetching news data:', error);
@@ -473,17 +465,154 @@ export class Main implements OnInit, AfterViewInit {
     this.selectedFeatureData = [];
   }
 
+  onFrequencyChange() {
+    // Reload chart data with new frequency
+    if (this.selectedItemId) {
+      const selectedItem = this.data.find(item => item.id === this.selectedItemId);
+      if (selectedItem) {
+        this.loadChartData(selectedItem.name);
+      }
+    }
+  }
+
+  selectPeriod(period: string) {
+    this.selectedPeriod = period;
+    // Reload chart data with new period
+    if (this.selectedItemId) {
+      const selectedItem = this.data.find(item => item.id === this.selectedItemId);
+      if (selectedItem) {
+        this.loadChartData(selectedItem.name);
+      }
+    }
+  }
+
+  applyTimePeriodFilter(data: any[]): any[] {
+    if (!data || data.length === 0) return data;
+
+    // Sort by date first
+    const sortedData = data.sort((a, b) => new Date(b.date_of_use).getTime() - new Date(a.date_of_use).getTime());
+    const latestDate = new Date(sortedData[0].date_of_use);
+    const earliestDate = new Date(sortedData[sortedData.length - 1].date_of_use);
+    
+    let cutoffDate: Date;
+    
+    switch (this.selectedPeriod) {
+      case '30D':
+        cutoffDate = new Date(latestDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+        break;
+      case '3M':
+        cutoffDate = new Date(latestDate.getTime() - (90 * 24 * 60 * 60 * 1000));
+        break;
+      case '6M':
+        cutoffDate = new Date(latestDate.getTime() - (180 * 24 * 60 * 60 * 1000));
+        break;
+      case 'max':
+        return data; // Return all data for max period
+      default:
+        return data;
+    }
+    
+    // If the cutoff date is before our earliest data, just return all data
+    if (cutoffDate < earliestDate) {
+      return data;
+    }
+    
+    const filteredData = data.filter(item => new Date(item.date_of_use) >= cutoffDate);
+    return filteredData;
+  }
+
+  applyFrequencyFilter(data: any[]): any[] {
+    if (!data || data.length === 0) return data;
+    
+    // Sort by date first
+    const sortedData = data.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
+    
+    switch (this.selectedFrequency) {
+      case 'daily':
+        return sortedData; // Return all daily data
+      
+      case 'weekly':
+        return this.aggregateToWeekly(sortedData);
+      
+      case 'monthly':
+        return this.aggregateToMonthly(sortedData);
+      
+      default:
+        return sortedData;
+    }
+  }
+
+  aggregateToWeekly(data: any[]): any[] {
+    const weeklyData: any[] = [];
+    const weekGroups = new Map<string, any[]>();
+    
+    data.forEach(item => {
+      const date = new Date(item.date_of_use);
+      const weekStart = new Date(date);
+      weekStart.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+      const weekKey = weekStart.toISOString().split('T')[0];
+      
+      if (!weekGroups.has(weekKey)) {
+        weekGroups.set(weekKey, []);
+      }
+      weekGroups.get(weekKey)!.push(item);
+    });
+    
+    weekGroups.forEach((weekData, weekKey) => {
+      if (weekData.length > 0) {
+        const avgDistinctCID = weekData.reduce((sum, item) => sum + item.distinct_CID_count, 0) / weekData.length;
+        const hasAnomaly = weekData.some(item => item.is_anomaly === "True");
+        
+        weeklyData.push({
+          ...weekData[0], // Use first item as base
+          date_of_use: weekKey,
+          distinct_CID_count: Math.round(avgDistinctCID),
+          is_anomaly: hasAnomaly ? "True" : "False"
+        });
+      }
+    });
+    
+    return weeklyData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
+  }
+
+  aggregateToMonthly(data: any[]): any[] {
+    const monthlyData: any[] = [];
+    const monthGroups = new Map<string, any[]>();
+    
+    data.forEach(item => {
+      const date = new Date(item.date_of_use);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthGroups.has(monthKey)) {
+        monthGroups.set(monthKey, []);
+      }
+      monthGroups.get(monthKey)!.push(item);
+    });
+    
+    monthGroups.forEach((monthData, monthKey) => {
+      if (monthData.length > 0) {
+        const avgDistinctCID = monthData.reduce((sum, item) => sum + item.distinct_CID_count, 0) / monthData.length;
+        const hasAnomaly = monthData.some(item => item.is_anomaly === "True");
+        
+        monthlyData.push({
+          ...monthData[0], // Use first item as base
+          date_of_use: `${monthKey}-01`, // First day of month
+          distinct_CID_count: Math.round(avgDistinctCID),
+          is_anomaly: hasAnomaly ? "True" : "False"
+        });
+      }
+    });
+    
+    return monthlyData.sort((a, b) => new Date(a.date_of_use).getTime() - new Date(b.date_of_use).getTime());
+  }
+
 
   createMiniCharts() {
-    console.log('Creating mini charts for', this.filteredData.length, 'items');
-    
     // Wait for DOM to be ready
     setTimeout(() => {
       this.filteredData.forEach((item, index) => {
         const canvasId = `miniChart${item.id}`;
         const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-        
-        console.log(`Looking for canvas ${canvasId}:`, canvas ? 'Found' : 'Not found');
         
         if (canvas) {
           const ctx = canvas.getContext('2d');
@@ -497,8 +626,6 @@ export class Main implements OnInit, AfterViewInit {
               const everyThirdData = sortedData.filter((_, index) => index % 3 === 0);
               const finalData = everyThirdData.slice(0, 10); // Limit to 10 points max
               const values = finalData.map(d => d.distinct_CID_count);
-              
-              console.log(`Creating chart ${index + 1}/${this.filteredData.length} for ${item.name}: ${values.length} points`);
               
               try {
                 // Create simple mini chart
@@ -537,12 +664,9 @@ export class Main implements OnInit, AfterViewInit {
                     }
                   }
                 });
-                console.log(`✅ Chart created for ${item.name}`);
               } catch (error) {
                 console.error(`❌ Error creating chart for ${item.name}:`, error);
               }
-            } else {
-              console.log(`No data found for ${item.name}`);
             }
           } else {
             console.error(`Could not get context for canvas ${canvasId}`);
